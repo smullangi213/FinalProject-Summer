@@ -10,14 +10,20 @@ PlayState = Class{__includes = BaseState}
 function PlayState:init()
     self.camX = 0
     self.camY = 0
-    self.level = LevelMaker.generate(100, 10)
-    self.tileMap = self.level.tileMap
+    
     self.background = math.random(3)
     self.backgroundX = 0
 
     self.gravityOn = true
     self.gravityAmount = 6
+    
+end
 
+function PlayState:enter(params)
+    self.width = params.levelWidth
+    self.level = LevelMaker.generate(self.width, 10)
+    self.tileMap = self.level.tileMap
+    
     self.player = Player({
         x = 0, y = 0,
         width = 16, height = 20,
@@ -31,12 +37,13 @@ function PlayState:init()
         map = self.tileMap,
         level = self.level
     })
-
+    
+    self.player.score = params.score
+    
     self:spawnEnemies()
-
+    
     self.player:changeState('falling')
 end
-
 function PlayState:update(dt)
     Timer.update(dt)
 
@@ -79,6 +86,30 @@ function PlayState:render()
     love.graphics.print(tostring(self.player.score), 5, 5)
     love.graphics.setColor(255, 255, 255, 255)
     love.graphics.print(tostring(self.player.score), 4, 4)
+    
+    --render inventory
+    love.graphics.setColor(0, 0, 0, 255)
+    love.graphics.print('INVENTORY:', 70, 5)
+    love.graphics.setColor (255, 255, 255, 255)
+    love.graphics.print('INVENTORY:', 69, 4)
+    
+    --black silhouette to show player doesn't have key or lock yet
+    love.graphics.setColor (0, 0, 0, 255)
+    love.graphics.draw(gTextures['keys-locks'], gFrames['keys-locks'][keyLockColor], 160, 5)
+    love.graphics.draw(gTextures['keys-locks'], gFrames['keys-locks'][keyLockColor + 4], 180, 5)
+    
+    if self.player.keyConsumed then
+        love.graphics.setColor (255, 255, 255, 255)
+        love.graphics.draw(gTextures['keys-locks'], gFrames['keys-locks'][keyLockColor], 159, 4)
+    end
+    
+    if self.player.lockConsumed then
+        love.graphics.setColor (255, 255, 255, 255)
+        love.graphics.draw(gTextures['keys-locks'], gFrames['keys-locks'][keyLockColor + 4], 179, 4)
+    end
+    
+    --reset color for other renders
+    love.graphics.setColor (255, 255, 255, 255)
 end
 
 function PlayState:updateCamera()

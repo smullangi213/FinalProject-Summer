@@ -55,4 +55,5 @@ function GameLevel:render()
     for k, entity in pairs(self.entities) do
         entity:render()
     end
+    
 end
