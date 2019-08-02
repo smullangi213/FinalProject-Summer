@@ -21,7 +21,14 @@ end
 
 function PlayState:enter(params)
     self.width = params.levelWidth
-    self.level = LevelMaker.generate(self.width, 10)
+    self.stage = (self.width - 80) / 20
+    self.bossLevel = self.stage >= 4 --tells if it should make the level a boss or not depending on stage number
+    if self.bossLevel then
+        self.width = 16
+        self.level = BossLevelMaker.generate (self.width, 10)
+    else
+        self.level = LevelMaker.generate(self.width, 10)
+    end
     self.tileMap = self.level.tileMap
     
     self.player = Player({
@@ -87,27 +94,39 @@ function PlayState:render()
     love.graphics.setColor(255, 255, 255, 255)
     love.graphics.print(tostring(self.player.score), 4, 4)
     
-    --render inventory
-    love.graphics.setColor(0, 0, 0, 255)
-    love.graphics.print('INVENTORY:', 70, 5)
-    love.graphics.setColor (255, 255, 255, 255)
-    love.graphics.print('INVENTORY:', 69, 4)
-    
-    --black silhouette to show player doesn't have key or lock yet
-    love.graphics.setColor (0, 0, 0, 255)
-    love.graphics.draw(gTextures['keys-locks'], gFrames['keys-locks'][keyLockColor], 160, 5)
-    love.graphics.draw(gTextures['keys-locks'], gFrames['keys-locks'][keyLockColor + 4], 180, 5)
-    
-    if self.player.keyConsumed then
+    if not self.bossLevel then
+        --render inventory
+        love.graphics.setColor(0, 0, 0, 255)
+        love.graphics.print('INVENTORY:', 50, 5)
         love.graphics.setColor (255, 255, 255, 255)
-        love.graphics.draw(gTextures['keys-locks'], gFrames['keys-locks'][keyLockColor], 159, 4)
-    end
+        love.graphics.print('INVENTORY:', 49, 4)
     
-    if self.player.lockConsumed then
+        --black silhouette to show player doesn't have key or lock yet
+        love.graphics.setColor (0, 0, 0, 255)
+        love.graphics.draw(gTextures['keys-locks'], gFrames['keys-locks'][keyLockColor], 140, 5)
+        love.graphics.draw(gTextures['keys-locks'], gFrames['keys-locks'][keyLockColor + 4], 160, 5)
+    
+        if self.player.keyConsumed then
+            love.graphics.setColor (255, 255, 255, 255)
+            love.graphics.draw(gTextures['keys-locks'], gFrames['keys-locks'][keyLockColor], 139, 4)
+        end
+    
+        if self.player.lockConsumed then
+            love.graphics.setColor (255, 255, 255, 255)
+            love.graphics.draw(gTextures['keys-locks'], gFrames['keys-locks'][keyLockColor + 4], 159, 4)
+        end
+        
+        love.graphics.setColor (0, 0, 0, 255)
+        love.graphics.print ('STAGE: ' .. self.stage, 180, 5)
         love.graphics.setColor (255, 255, 255, 255)
-        love.graphics.draw(gTextures['keys-locks'], gFrames['keys-locks'][keyLockColor + 4], 179, 4)
+        love.graphics.print ('STAGE: ' .. self.stage, 179, 4)
+    else
+        love.graphics.setColor (0, 0, 0, 255)
+        love.graphics.print ('STAGE: BOSS', 128, 5)
+        love.graphics.setColor (255, 0, 0, 255)
+        love.graphics.print ('STAGE: BOSS', 127, 4)
+        
     end
-    
     --reset color for other renders
     love.graphics.setColor (255, 255, 255, 255)
 end
@@ -127,6 +146,24 @@ end
     Adds a series of enemies to the level randomly.
 ]]
 function PlayState:spawnEnemies()
+    if self.bossLevel then
+        local boss
+            boss = Boss {
+                texture = 'boss',
+                            x = 8 * TILE_SIZE,
+                            y = 6 * TILE_SIZE - 18,
+                            width = 16,
+                            height = 20,
+                            health = 3,
+                            stateMachine = StateMachine {
+                                ['chase'] = function() return BossChasingState(self.tileMap, self.player, boss) end,
+                                ['slide'] = function() return BossSlidingState(self.tileMap, self.player, boss) end,
+                            }
+                        }
+                        boss:changeState('chase')
+
+                        table.insert(self.level.entities, boss)
+    end
     -- spawn snails in the level
     for x = 1, self.tileMap.width do
 
@@ -149,6 +186,7 @@ function PlayState:spawnEnemies()
                             y = (y - 2) * TILE_SIZE + 2,
                             width = 16,
                             height = 16,
+                            health = 1,
                             stateMachine = StateMachine {
                                 ['idle'] = function() return SnailIdleState(self.tileMap, self.player, snail) end,
                                 ['moving'] = function() return SnailMovingState(self.tileMap, self.player, snail) end,

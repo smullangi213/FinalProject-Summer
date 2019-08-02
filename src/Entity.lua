@@ -23,6 +23,7 @@ function Entity:init(def)
     self.width = def.width
     self.height = def.height
 
+    self.health = def.health or 1
     self.texture = def.texture
     self.stateMachine = def.stateMachine
 
@@ -39,6 +40,10 @@ function Entity:changeState(state, params)
     self.stateMachine:change(state, params)
 end
 
+function Entity:damage()
+    self.health = self.health - 1
+    return  false -- tells for default kill that boss wasn't killed 
+end
 function Entity:update(dt)
     self.stateMachine:update(dt)
 end

@@ -80,10 +80,22 @@ function PlayerFallingState:update(dt)
     -- check if we've collided with any entities and kill them if so
     for k, entity in pairs(self.player.level.entities) do
         if entity:collides(self.player) then
-            gSounds['kill']:play()
-            gSounds['kill2']:play()
-            self.player.score = self.player.score + 100
-            table.remove(self.player.level.entities, k)
+            if not entity.invulnerable then
+                bossKilled = entity:damage()
+                if bossKilled then
+                    gStateMachine:change ('win', {score = self.player.score})
+                elseif entity.health <= 0 then --removes dead entity
+                    gSounds['kill']:play()
+                    gSounds['kill2']:play()
+                    self.player.score = self.player.score + 100
+                    table.remove(self.player.level.entities, k)
+                else
+                    self.player:changeState('jump') --makes effect of bouncing off after damaging creature
+                end
+            else
+                gSounds['death']:play()
+                gStateMachine:change('start')
+            end
         end
     end
 end

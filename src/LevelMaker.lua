@@ -30,7 +30,7 @@ function LevelMaker.generate(width, height)
     for x = 1, height do
         table.insert(tiles, {})
     end
-
+    
     -- column by column generation instead of row; sometimes better for platformers
     for x = 1, width do
         local tileID = TILE_ID_EMPTY
