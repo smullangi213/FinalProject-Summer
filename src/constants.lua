@@ -57,7 +57,7 @@ PLAYER_JUMP_VELOCITY = -150
 SNAIL_MOVE_SPEED = 10
 
 --boss movement speeds
-BOSS_MOVE_SPEED = 50
+BOSS_MOVE_SPEED = 40
 --
 -- tile IDs
 --

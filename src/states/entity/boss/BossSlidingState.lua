@@ -48,7 +48,7 @@ function BossSlidingState:update(dt)
         self.boss.x = self.boss.x + (150 + (100* (self.boss.slideLevel - 1))) * dt
     end
     
-    if self.timer >= 10 then
+    if self.timer >= 1 then
         self.boss.invulnerable = false
     end
     
@@ -58,4 +58,5 @@ function BossSlidingState:update(dt)
         --increase the times that the boss has slided
         self.boss.slideLevel = self.boss.slideLevel + 1
     end
+    
 end
